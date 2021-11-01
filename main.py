@@ -9,17 +9,18 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import StratifiedKFold
 from sklearn import datasets, linear_model
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_validate
 import numpy
 from numpy import random
+from sklearn.neighbors import KNeighborsRegressor
 import matplotlib.pyplot as mpl
 def main():
     
     
     data, target, feature_names, target_name, dataFile = loadCSV('./data/wine.data')
-    #kNN(data, target)
+    k = kNN(data, target)
     #meetTheData(data, feature_names, target_name)
-    crossVal(1,data, target)
+    crossVal(k,data, target)
     
 
 #------------------supporting functions below------------------------#
@@ -56,6 +57,8 @@ def kNN(data, target):
     max_neighbors = int(numpy.sqrt(sample_size) + 3)
     testing_accuracy = numpy.zeros(max_neighbors)
     training_accuracy = numpy.zeros(max_neighbors)
+    highest_acc = 0
+    highest_neigh = 0
     for x in range(1, max_neighbors):
         print("\nfor %d neighbors: " % x)
         clf = KNeighborsClassifier(n_neighbors=x)
@@ -65,6 +68,9 @@ def kNN(data, target):
         print(target[training_size:])
         score = clf.score(data[training_size:], target[training_size:]) 
         testing_accuracy[x] = score
+        if(score > highest_acc):
+            hightest_acc = score
+            highest_neigh = x
         #predict = clf.predict(data[:training_size])
         score = clf.score(data[:training_size], target[:training_size])
         training_accuracy[x] = score
@@ -79,13 +85,13 @@ def kNN(data, target):
     ax.legend()
     ax.set_xlabel("Number of Neighbors")
     ax.set_ylabel("Accuracy")
+    return highest_neigh
     
 def crossVal(num_neighbors, data, target):
     skfold = StratifiedKFold(n_splits=5)
-    
-    logreg = LogisticRegression()
-    print("Cross-validation scores:\n{}".format(
-    cross_val_score(logreg, data, target, cv=skfold)))
-    
+    reg = KNeighborsClassifier(n_neighbors=num_neighbors)
+
+    temp = cross_validate(reg, data, target, cv=skfold,return_train_score=True)
+    print(temp)
     
 main()
